@@ -309,6 +309,9 @@ body {
 .calendar-table tr:last-child td {
     border-bottom: none;
 }
+.calendar-table tr {
+    border-bottom: 1px solid #f0f0f0;
+}
 .cell-available {
     background: #e6f0ff;
     color: #0057b8;
@@ -540,4 +543,77 @@ body {
 } 
 .calendar-table th:not(:first-child), .calendar-table td:not(:first-child) {
     width: calc((100% - 70px) / 7);
+} 
+.calendar-table td {
+    position: relative;
+}
+.calendar-table td .quarter-divider {
+    position: absolute;
+    left: 0;
+    right: 0;
+    height: 1px;
+    background: #e0e6ef;
+    opacity: 0.6;
+    z-index: 2;
+}
+.calendar-table td .quarter-divider.q1 { top: 25%; }
+.calendar-table td .quarter-divider.q2 { top: 50%; }
+.calendar-table td .quarter-divider.q3 { top: 75%; } 
+
+.modal {
+    display: flex;
+    position: fixed;
+    z-index: 2000;
+    left: 0;
+    top: 0;
+    width: 100vw;
+    height: 100vh;
+    overflow: auto;
+    background: rgba(0,0,0,0.25);
+    align-items: center;
+    justify-content: center;
+}
+.modal-content {
+    background: #fff;
+    padding: 2rem 2.5rem;
+    border-radius: 16px;
+    box-shadow: 0 8px 32px rgba(0,87,184,0.18);
+    min-width: 320px;
+    max-width: 95vw;
+    position: relative;
+}
+.modal-content h2 {
+    margin-top: 0;
+    font-family: 'Montserrat', 'Segoe UI', 'Roboto', Arial, sans-serif;
+    color: #0057b8;
+}
+.modal-content label {
+    display: block;
+    margin-top: 1rem;
+    font-weight: 600;
+    color: #0057b8;
+}
+.modal-content input,
+.modal-content select {
+    width: 100%;
+    padding: 0.6rem 1rem;
+    margin-top: 0.3rem;
+    border-radius: 8px;
+    border: 1px solid #e6f0ff;
+    font-size: 1rem;
+    font-family: inherit;
+    margin-bottom: 0.5rem;
+}
+.modal-content .close {
+    position: absolute;
+    top: 1rem;
+    right: 1.5rem;
+    font-size: 2rem;
+    color: #aaa;
+    cursor: pointer;
+    font-weight: bold;
+    transition: color 0.2s;
+}
+.modal-content .close:hover {
+    color: #0057b8;
 } 

@@ -1,0 +1,15 @@
+facility,day,start_time,end_time,status
+Main Hall,Monday,08:00,09:00,booked
+Main Hall,Monday,10:15,11:15,booked
+Main Hall,Monday,12:00,12:15,maintenance
+Main Hall,Monday,15:00,15:15,booked
+Main Hall,Monday,18:00,18:15,booked
+Small Gym,Monday,07:00,07:45,booked
+Small Gym,Monday,11:00,11:15,booked
+Small Gym,Monday,16:00,16:15,booked
+Small Gym,Monday,20:00,20:15,maintenance
+Small Gym,Tuesday,14:30,15:45,booked
+Yoga Room,Monday,09:00,10:30,booked
+Yoga Room,Monday,13:00,13:15,booked
+Yoga Room,Monday,19:00,19:15,booked
+Yoga Room,Monday,22:00,22:15,maintenance 

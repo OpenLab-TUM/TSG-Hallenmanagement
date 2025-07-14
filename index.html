@@ -54,6 +54,40 @@
             </div>
         </div>
     </div>
+    <div id="newBookingModal" class="modal" style="display:none;">
+        <div class="modal-content">
+            <span class="close" id="closeBookingModal">&times;</span>
+            <h2>New Booking</h2>
+            <form id="newBookingForm">
+                <label for="bookingFacility">Facility:</label>
+                <select id="bookingFacility" required>
+                    <option value="Main Hall">Main Hall</option>
+                    <option value="Small Gym">Small Gym</option>
+                    <option value="Yoga Room">Yoga Room</option>
+                </select>
+                <label for="bookingDay">Day:</label>
+                <select id="bookingDay" required>
+                    <option value="Monday">Monday</option>
+                    <option value="Tuesday">Tuesday</option>
+                    <option value="Wednesday">Wednesday</option>
+                    <option value="Thursday">Thursday</option>
+                    <option value="Friday">Friday</option>
+                    <option value="Saturday">Saturday</option>
+                    <option value="Sunday">Sunday</option>
+                </select>
+                <label for="bookingStart">Start Time:</label>
+                <input type="time" id="bookingStart" step="900" min="07:00" max="22:00" required>
+                <label for="bookingEnd">End Time:</label>
+                <input type="time" id="bookingEnd" step="900" min="07:00" max="22:00" required>
+                <label for="bookingStatus">Status:</label>
+                <select id="bookingStatus" required>
+                    <option value="booked">Booked</option>
+                    <option value="maintenance">Maintenance</option>
+                </select>
+                <button type="submit" class="modern-btn" style="margin-top:1rem;">Add Booking</button>
+            </form>
+        </div>
+    </div>
     <script src="script.js"></script>
 </body>
 </html>
