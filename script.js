@@ -1,11 +1,12 @@
 // Days of the week
 const daysOfWeek = ['Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday', 'Sunday'];
-// Mock data for facilities and bookings (now per day and time slot)
+// New mock data for facilities
 const facilities = [
     { name: 'Overview' },
     { name: 'Main Hall' },
     { name: 'Small Gym' },
-    { name: 'Yoga Room' }
+    { name: 'Yoga Room' },
+    { name: 'Conference Room' }
 ];
 // Main timetable rows at 1-hour intervals
 const timeSlots = [
@@ -33,23 +34,48 @@ function createDaySlots(defaultStatus = 'available') {
     }
     return slots;
 }
-// Bookings: facility -> day -> slot -> status
+// New mock bookings: facility -> day -> slot -> status
 const bookings = {
     'Overview': {},
     'Main Hall': {},
     'Small Gym': {},
-    'Yoga Room': {}
+    'Yoga Room': {},
+    'Conference Room': {}
 };
 for (const facility of facilities) {
-    if (facility.name === 'Overview') {
-        for (const day of daysOfWeek) {
-            bookings['Overview'][day] = createDaySlots('available');
-        }
-    } else {
-        for (const day of daysOfWeek) {
-            bookings[facility.name][day] = createDaySlots('available');
-        }
+    for (const day of daysOfWeek) {
+        bookings[facility.name][day] = createDaySlots('available');
     }
+}
+// Add new mock bookings
+// Main Hall: Monday 09:00-11:00 booked, Wednesday 14:00-16:00 maintenance
+for (let min = 9 * 60; min < 11 * 60; min += 15) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    bookings['Main Hall']['Monday'][`${h}:${m}`] = 'booked';
+}
+for (let min = 14 * 60; min < 16 * 60; min += 15) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    bookings['Main Hall']['Wednesday'][`${h}:${m}`] = 'maintenance';
+}
+// Small Gym: Tuesday 10:00-12:00 booked
+for (let min = 10 * 60; min < 12 * 60; min += 15) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    bookings['Small Gym']['Tuesday'][`${h}:${m}`] = 'booked';
+}
+// Yoga Room: Friday 18:00-20:00 booked
+for (let min = 18 * 60; min < 20 * 60; min += 15) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    bookings['Yoga Room']['Friday'][`${h}:${m}`] = 'booked';
+}
+// Conference Room: Thursday 13:00-15:00 maintenance
+for (let min = 13 * 60; min < 15 * 60; min += 15) {
+    const h = Math.floor(min / 60).toString().padStart(2, '0');
+    const m = (min % 60).toString().padStart(2, '0');
+    bookings['Conference Room']['Thursday'][`${h}:${m}`] = 'maintenance';
 }
 // Remove hardcoded mock bookings and instead load from CSV
 async function loadBookingsFromCSV() {
@@ -60,7 +86,7 @@ async function loadBookingsFromCSV() {
         }
     }
     try {
-        const response = await fetch('bookings.csv');
+        const response = await fetch('/bookings');
         if (!response.ok) {
             console.error('Failed to fetch bookings.csv:', response.status, response.statusText);
             return;
@@ -84,6 +110,13 @@ async function loadBookingsFromCSV() {
             }
             // Fill the bookings structure for each 15-min slot in the range
             const { facility, day, start_time, end_time, status } = entry;
+            // Dynamically add new facility if not present
+            if (!bookings[facility]) {
+                bookings[facility] = {};
+                for (const d of daysOfWeek) {
+                    bookings[facility][d] = createDaySlots('available');
+                }
+            }
             let [sh, sm] = start_time.split(':').map(Number);
             let [eh, em] = end_time.split(':').map(Number);
             let current = sh * 60 + sm;
@@ -106,13 +139,15 @@ async function loadBookingsFromCSV() {
 // Helper to render a table cell
 function renderCell(status, slot, day, facility) {
     let label = status.charAt(0).toUpperCase() + status.slice(1);
-    
+
     // Special handling for Overview facility
     if (facility === 'Overview') {
-        // Calculate combined status from all facilities
-        const allFacilities = ['Main Hall', 'Small Gym', 'Yoga Room'];
+        // Calculate combined status from all facilities except Overview
+        const allFacilities = facilities
+            .map(f => f.name)
+            .filter(name => name !== 'Overview');
         const statuses = allFacilities.map(f => bookings[f][day][slot]);
-        
+
         if (statuses.includes('maintenance')) {
             status = 'maintenance';
             label = 'Maintenance';
@@ -124,7 +159,7 @@ function renderCell(status, slot, day, facility) {
             label = 'Available';
         }
     }
-    
+
     // Add quarter-hour dividers overlay
     const quarterDividers = `
         <div class='quarter-divider q1'></div>
@@ -149,9 +184,13 @@ function renderCalendar(view, customDay, selectedFacility) {
         }
         html += `</tbody></table>`;
     } else if (view === 'day') {
-        // Day view: one column for the selected day (default: Monday)
-        let day = 'Monday';
-        html += `<table class="calendar-table"><thead><tr><th>Time</th><th>${day}</th></tr></thead><tbody>`;
+        // Day view: put navigation arrows and current day label in the table header
+        let day = daysOfWeek[currentDayIndex];
+        html += `<table class="calendar-table"><thead><tr><th>Time</th><th>
+            <button id="prevDay" aria-label="Previous day">&#8592;</button>
+            <span class="current-day">${day}</span>
+            <button id="nextDay" aria-label="Next day">&#8594;</button>
+        </th></tr></thead><tbody>`;
         for (const slot of timeSlots) {
             html += `<tr><td class="facility-name">${slot}</td>`;
             html += renderCell(bookings[selectedFacility][day][slot], slot, day, selectedFacility);
@@ -173,6 +212,22 @@ function renderCalendar(view, customDay, selectedFacility) {
         html += `</tbody></table>`;
     }
     document.getElementById('calendarArea').innerHTML = html;
+
+    // Add event listeners for day navigation if in day view
+    if (view === 'day') {
+        const prevBtn = document.getElementById('prevDay');
+        const nextBtn = document.getElementById('nextDay');
+        if (prevBtn && nextBtn) {
+            prevBtn.onclick = () => {
+                currentDayIndex = (currentDayIndex + 6) % 7; // wrap around
+                renderCalendar('day', null, selectedFacility);
+            };
+            nextBtn.onclick = () => {
+                currentDayIndex = (currentDayIndex + 1) % 7; // wrap around
+                renderCalendar('day', null, selectedFacility);
+            };
+        }
+    }
 }
 // Tab switching logic
 document.addEventListener('DOMContentLoaded', async function() {
@@ -182,7 +237,8 @@ document.addEventListener('DOMContentLoaded', async function() {
     let currentView = 'week';
     let currentCustomDay = 'monday';
     let selectedFacility = 'Overview';
-    
+    // let currentDayIndex = 0; // 0 = Monday, 6 = Sunday (REMOVED)
+
     function updateTabs(selected) {
         tabs.forEach(tab => {
             if (tab.getAttribute('data-view') === selected) {
@@ -192,7 +248,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }
-    
+
     function updateFacilitySelection(facility) {
         facilityItems.forEach(item => {
             if (item.getAttribute('data-facility') === facility) {
@@ -202,7 +258,7 @@ document.addEventListener('DOMContentLoaded', async function() {
             }
         });
     }
-    
+
     tabs.forEach(tab => {
         tab.addEventListener('click', async function() {
             const view = tab.getAttribute('data-view');
@@ -213,11 +269,14 @@ document.addEventListener('DOMContentLoaded', async function() {
             } else {
                 customSelect.style.display = 'none';
             }
+            if (view === 'day') {
+                currentDayIndex = 0; // Reset to Monday when switching to day view
+            }
             await loadBookingsFromCSV();
             renderCalendar(view, currentCustomDay, selectedFacility);
         });
     });
-    
+
     facilityItems.forEach(item => {
         item.addEventListener('click', async function() {
             selectedFacility = this.getAttribute('data-facility');
@@ -226,13 +285,13 @@ document.addEventListener('DOMContentLoaded', async function() {
             renderCalendar(currentView, currentCustomDay, selectedFacility);
         });
     });
-    
+
     customSelect.addEventListener('change', async function() {
         currentCustomDay = customSelect.value;
         await loadBookingsFromCSV();
         renderCalendar('custom', currentCustomDay, selectedFacility);
     });
-    
+
     // Sidebar toggle logic
     const sidebar = document.getElementById('sidebar');
     const sidebarToggle = document.getElementById('sidebarToggle');
